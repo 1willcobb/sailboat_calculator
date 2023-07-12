@@ -168,3 +168,11 @@ function animate(){
 }
 
 animate()
+
+function moveCamera(){
+  const t = document.body.getBoundingClientRect().top;
+
+  camera.position.set( 30 + t * -.1, 30 + t * -.1, t * -.5 )
+}
+
+document.body.onscroll = moveCamera
