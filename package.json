@@ -1,0 +1,19 @@
+{
+  "name": "sailboat_calculator",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.4.0"
+  },
+  "dependencies": {
+    "bezier": "^0.1.0",
+    "bezier-easing": "^2.1.0",
+    "bezier.js": "^0.0.0"
+  }
+}
