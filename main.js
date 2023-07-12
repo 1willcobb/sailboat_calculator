@@ -8,7 +8,8 @@ import { Sky } from 'three/examples/jsm/objects/Sky'
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 5, 10000);
+
 
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg')
@@ -16,7 +17,7 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setPixelRatio( window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(30);
+camera.position.set(50,50,100);
 
 renderer.render(scene,camera);
 
@@ -25,8 +26,9 @@ const gltfloader = new GLTFLoader()
 gltfloader.setMeshoptDecoder(MeshoptDecoder);
 gltfloader.load('./sailboat/lagoon7-v1.glb', (gltf) => {
   lagoonModel = gltf.scene;
+  lagoonModel.scale.set(5,5,5)
   lagoonModel.rotation.y = 3.12;
-  lagoonModel.translateY(-1.3);
+  lagoonModel.translateY(-8.7);
   scene.add(lagoonModel)
   }
 )
@@ -88,13 +90,13 @@ sun = new THREE.Vector3();
 
 // Water
 
-const waterGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+const waterGeometry = new THREE.PlaneGeometry( 100000, 100000 );
 water = new Water(
   waterGeometry,
   {
-    textureWidth: 512,
-    textureHeight: 512,
-    waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
+    textureWidth: 10000,
+    textureHeight: 10000,
+    waterNormals: new THREE.TextureLoader().load( 'assets/waternormals.jpg', function ( texture ) {
 
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
@@ -102,7 +104,7 @@ water = new Water(
     sunDirection: new THREE.Vector3(),
     sunColor: 0xffffff,
     waterColor: 0x001e0f,
-    distortionScale: 3.7,
+    distortionScale: 6,
     fog: scene.fog !== undefined
   }
 );
@@ -126,7 +128,7 @@ scene.add( water );
 
   const parameters = {
     elevation: 2,
-    azimuth: 180
+    azimuth: 150
   };
 
   const pmremGenerator = new THREE.PMREMGenerator( renderer );
@@ -157,7 +159,7 @@ updateSun();
 
 function animate(){
   requestAnimationFrame(animate);
-  water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+  water.material.uniforms[ 'time' ].value += 1.0 / 150.0;
   lagoonAnimate();
 
   controls.update();
