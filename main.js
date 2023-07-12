@@ -1,26 +1,10 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-
-/*
-let lagoonModel;
-const mtlLoader = new MTLLoader()
-mtlLoader.load('./sailboat/lagoon2.mtl', (materials) => {
-  materials.preload()
-  const lagoon = new OBJLoader()
-  console.log(materials)
-  lagoon.setMaterials(materials)
-  lagoon.load('./sailboat/lagoon2.obj', (lagoonLoaded) => {
-    lagoonModel = lagoonLoaded;
-    scene.add(lagoonLoaded)
-  })
-})
-*/
+import { Water } from 'three/examples/jsm/objects/Water'
+import { Sky } from 'three/examples/jsm/objects/Sky'
 
 const scene = new THREE.Scene();
 
@@ -42,35 +26,24 @@ gltfloader.setMeshoptDecoder(MeshoptDecoder);
 gltfloader.load('./sailboat/lagoon7-v1.glb', (gltf) => {
   lagoonModel = gltf.scene;
   lagoonModel.rotation.y = 3.12;
+  lagoonModel.translateY(-1.3);
   scene.add(lagoonModel)
-  },
-  function (xhr) {
-    console.log((xhr.loaded / xhr.total * 100) + '% loaded')
-  },
-  function (error) {
-    console.log(error);
   }
 )
 
-const geometry = new THREE.TorusGeometry(10,3,16,100)
-const material = new THREE.MeshStandardMaterial({color: 0xFF6347, wireframe: true})
-const torus = new THREE.Mesh( geometry, material)
-
-//scene.add(torus)
 
 const pointLight = new THREE.PointLight(0xffffff)
 pointLight.position.set(20,20,20)
 
 scene.add(pointLight)
 
+/*
 const ambientLight = new THREE.AmbientLight(0xffffff)
 scene.add(ambientLight)
 
 const lightHelper = new THREE.PointLightHelper(pointLight)
 const gridHelper = new THREE.GridHelper(200, 50);
 scene.add(lightHelper, gridHelper)
-
-const controls = new OrbitControls(camera, renderer.domElement)
 
 function addStar(){
   const geometry = new THREE.SphereGeometry(0.25, 24, 24);
@@ -84,37 +57,107 @@ function addStar(){
 }
 
 Array(200).fill().forEach(addStar)
+*/
 
+const controls = new OrbitControls(camera, renderer.domElement)
 
 let lagoon_tracker = 0;
 let lagoon_wobbler = true;
-function lagoonAnimate(){
+
+function lagoonAnimate() {
   if (lagoonModel) {
-    if (lagoon_wobbler == true){
-      lagoonModel.rotation.x += 0.002
-      lagoon_tracker += .002
-      if (lagoon_tracker >= .15) {
+    if (lagoon_wobbler) {
+      lagoonModel.rotation.x = Math.sin(lagoon_tracker) * 0.05;
+      lagoon_tracker += 0.01;
+      if (lagoon_tracker >= 1) {
         lagoon_wobbler = false;
       }
-    } else if (lagoon_wobbler == false){
-      lagoonModel.rotation.x -= 0.002
-      lagoon_tracker -= 0.002
-      if (lagoon_tracker <= -.15) {
+    } else {
+      lagoonModel.rotation.x = Math.sin(lagoon_tracker) * 0.05;
+      lagoon_tracker -= 0.01;
+      if (lagoon_tracker <= -1) {
         lagoon_wobbler = true;
       }
     }
-      
   }
 }
+
+let water, sun;
+
+sun = new THREE.Vector3();
+
+// Water
+
+const waterGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+water = new Water(
+  waterGeometry,
+  {
+    textureWidth: 512,
+    textureHeight: 512,
+    waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
+
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+    } ),
+    sunDirection: new THREE.Vector3(),
+    sunColor: 0xffffff,
+    waterColor: 0x001e0f,
+    distortionScale: 3.7,
+    fog: scene.fog !== undefined
+  }
+);
+
+water.rotation.x = - Math.PI / 2;
+
+scene.add( water );
+
+  // Skybox
+
+  const sky = new Sky();
+  sky.scale.setScalar( 10000 );
+  scene.add( sky );
+
+  const skyUniforms = sky.material.uniforms;
+
+  skyUniforms[ 'turbidity' ].value = 10;
+  skyUniforms[ 'rayleigh' ].value = 2;
+  skyUniforms[ 'mieCoefficient' ].value = 0.005;
+  skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+
+  const parameters = {
+    elevation: 2,
+    azimuth: 180
+  };
+
+  const pmremGenerator = new THREE.PMREMGenerator( renderer );
+  let renderTarget;
+
+function updateSun() {
+
+  const phi = THREE.MathUtils.degToRad( 90 - parameters.elevation );
+  const theta = THREE.MathUtils.degToRad( parameters.azimuth );
+
+  sun.setFromSphericalCoords( 1, phi, theta );
+
+  sky.material.uniforms[ 'sunPosition' ].value.copy( sun );
+  water.material.uniforms[ 'sunDirection' ].value.copy( sun ).normalize();
+
+  if ( renderTarget !== undefined ) renderTarget.dispose();
+
+  renderTarget = pmremGenerator.fromScene( sky );
+
+  scene.environment = renderTarget.texture;
+
+}
+
+updateSun();
 
 
 
 
 function animate(){
   requestAnimationFrame(animate);
-  torus.rotation.y += 0.001;
-  torus.rotation.z += 0.001;
-
+  water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
   lagoonAnimate();
 
   controls.update();
