@@ -34,32 +34,12 @@ gltfloader.load('./sailboat/lagoon7-v1.glb', (gltf) => {
 )
 
 
-const pointLight = new THREE.PointLight(0xffffff)
+const pointLight = new THREE.PointLight(0xffffff, 0.5)
 pointLight.position.set(20,20,20)
 
 scene.add(pointLight)
 
-/*
-const ambientLight = new THREE.AmbientLight(0xffffff)
-scene.add(ambientLight)
 
-const lightHelper = new THREE.PointLightHelper(pointLight)
-const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(lightHelper, gridHelper)
-
-function addStar(){
-  const geometry = new THREE.SphereGeometry(0.25, 24, 24);
-  const material = new THREE.MeshStandardMaterial({color: 0xffffff})
-  const star = new THREE.Mesh( geometry, material);
-
-  const [x,y,z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
-
-  star.position.set(x,y,z);
-  scene.add(star)
-}
-
-Array(200).fill().forEach(addStar)
-*/
 
 const controls = new OrbitControls(camera, renderer.domElement)
 
@@ -96,13 +76,11 @@ water = new Water(
   {
     textureWidth: 10000,
     textureHeight: 10000,
-    waterNormals: new THREE.TextureLoader().load( 'assets/waternormals.jpg', function ( texture ) {
-
+    waterNormals: new THREE.TextureLoader().load('assets/waternormals.jpg', function (texture) {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-
-    } ),
+    }),
     sunDirection: new THREE.Vector3(),
-    sunColor: 0xffffff,
+    sunColor: 0xF2F0DF, // Adjust this value to dim or brighten the sun
     waterColor: 0x001e0f,
     distortionScale: 6,
     fog: scene.fog !== undefined
@@ -113,47 +91,50 @@ water.rotation.x = - Math.PI / 2;
 
 scene.add( water );
 
-  // Skybox
+// Skybox
 
-  const sky = new Sky();
-  sky.scale.setScalar( 10000 );
-  scene.add( sky );
+const sky = new Sky();
+sky.scale.setScalar( 10000 );
+scene.add( sky );
 
-  const skyUniforms = sky.material.uniforms;
+const skyUniforms = sky.material.uniforms;
 
-  skyUniforms[ 'turbidity' ].value = 10;
-  skyUniforms[ 'rayleigh' ].value = 2;
-  skyUniforms[ 'mieCoefficient' ].value = 0.005;
-  skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+skyUniforms[ 'turbidity' ].value = 10;
+skyUniforms[ 'rayleigh' ].value = .1;
+skyUniforms[ 'mieCoefficient' ].value = 0.001;
+skyUniforms[ 'mieDirectionalG' ].value = 0.8;
 
-  const parameters = {
-    elevation: 2,
-    azimuth: 150
-  };
+const parameters = {
+  elevation: 2,
+  azimuth: 150
+};
 
-  const pmremGenerator = new THREE.PMREMGenerator( renderer );
-  let renderTarget;
+const pmremGenerator = new THREE.PMREMGenerator( renderer );
+let renderTarget;
 
+const sunSpeed = 2 * Math.PI / 60;
 function updateSun() {
+  const elapsedTime = Date.now() * 0.001; // Convert milliseconds to seconds
+  const orbitRadius = 100; // Adjust this value based on your scene
 
-  const phi = THREE.MathUtils.degToRad( 90 - parameters.elevation );
-  const theta = THREE.MathUtils.degToRad( parameters.azimuth );
+  const theta = elapsedTime * sunSpeed; // Angle of rotation for the sun
 
-  sun.setFromSphericalCoords( 1, phi, theta );
+  const sunX = 0; // X-coordinate of the sun (no horizontal movement)
+  const sunY = Math.cos(theta) * orbitRadius; // Y-coordinate of the sun
+  const sunZ = Math.sin(theta) * orbitRadius; // Z-coordinate of the sun
 
-  sky.material.uniforms[ 'sunPosition' ].value.copy( sun );
-  water.material.uniforms[ 'sunDirection' ].value.copy( sun ).normalize();
 
-  if ( renderTarget !== undefined ) renderTarget.dispose();
+  sun.set(sunX, sunY, sunZ); // Update the sun's position
 
-  renderTarget = pmremGenerator.fromScene( sky );
+  sky.material.uniforms["sunPosition"].value.copy(sun);
+  water.material.uniforms["sunDirection"].value.copy(sun).normalize();
+
+  if (renderTarget !== undefined) renderTarget.dispose();
+
+  renderTarget = pmremGenerator.fromScene(sky);
 
   scene.environment = renderTarget.texture;
-
 }
-
-updateSun();
-
 
 
 
@@ -161,6 +142,8 @@ function animate(){
   requestAnimationFrame(animate);
   water.material.uniforms[ 'time' ].value += 1.0 / 150.0;
   lagoonAnimate();
+
+  updateSun();
 
   controls.update();
 
@@ -176,3 +159,33 @@ function moveCamera(){
 }
 
 document.body.onscroll = moveCamera
+
+
+
+
+
+
+
+
+
+/*
+const ambientLight = new THREE.AmbientLight(0xffffff)
+scene.add(ambientLight)
+
+const lightHelper = new THREE.PointLightHelper(pointLight)
+const gridHelper = new THREE.GridHelper(200, 50);
+scene.add(lightHelper, gridHelper)
+
+function addStar(){
+  const geometry = new THREE.SphereGeometry(0.25, 24, 24);
+  const material = new THREE.MeshStandardMaterial({color: 0xffffff})
+  const star = new THREE.Mesh( geometry, material);
+
+  const [x,y,z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
+
+  star.position.set(x,y,z);
+  scene.add(star)
+}
+
+Array(200).fill().forEach(addStar)
+*/

@@ -14,6 +14,7 @@
   "dependencies": {
     "bezier": "^0.1.0",
     "bezier-easing": "^2.1.0",
-    "bezier.js": "^0.0.0"
+    "bezier.js": "^0.0.0",
+    "utils": "^0.3.1"
   }
 }
