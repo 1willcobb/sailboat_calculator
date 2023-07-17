@@ -1,10 +1,16 @@
 import './style.css'
 import * as THREE from 'three'
+import studio from '@theatre/studio'
+import * as core from '@theatre/core'
+//import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { Water } from 'three/examples/jsm/objects/Water'
 import { Sky } from 'three/examples/jsm/objects/Sky'
+import { LinearToneMapping } from 'three'
+
+studio.initialize()
 
 const scene = new THREE.Scene();
 
@@ -19,7 +25,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio( window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 camera.position.set(50,50,100);
-
+renderer.toneMapping = LinearToneMapping;
+renderer.toneMappingExposure = .4; // sets the exposure of the scene
 renderer.render(scene,camera);
 
 let lagoonModel;
@@ -35,7 +42,7 @@ gltfloader.load('./sailboat/lagoon7-v1.glb', (gltf) => {
 )
 
 
-const pointLight = new THREE.PointLight(0xffffff, 0.5)
+const pointLight = new THREE.PointLight(0xffffff, 1)
 pointLight.position.set(20,20,20)
 
 scene.add(pointLight)
@@ -69,6 +76,7 @@ let water, sun;
 
 sun = new THREE.Vector3();
 
+
 // Water
 
 const waterGeometry = new THREE.PlaneGeometry( 100000, 100000 );
@@ -81,7 +89,7 @@ water = new Water(
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     }),
     sunDirection: new THREE.Vector3(),
-    sunColor: 0xF2F0DF, // Adjust this value to dim or brighten the sun
+    sunColor: 0xFFDD00, // Adjust this value to dim or brighten the sun
     waterColor: 0x001e0f,
     distortionScale: 6,
     fog: scene.fog !== undefined
@@ -95,25 +103,23 @@ scene.add( water );
 // Skybox
 
 const sky = new Sky();
-sky.scale.setScalar( 10000 );
+sky.scale.setScalar( 100000 );
 scene.add( sky );
 
 const skyUniforms = sky.material.uniforms;
 
 skyUniforms[ 'turbidity' ].value = 10;
-skyUniforms[ 'rayleigh' ].value = .1;
-skyUniforms[ 'mieCoefficient' ].value = 0.001;
+skyUniforms[ 'rayleigh' ].value = 2;
+skyUniforms[ 'mieCoefficient' ].value = 0.01;
 skyUniforms[ 'mieDirectionalG' ].value = 0.8;
-
-const parameters = {
-  elevation: 2,
-  azimuth: 150
-};
 
 const pmremGenerator = new THREE.PMREMGenerator( renderer );
 let renderTarget;
 
-const sunSpeed = 2 * Math.PI / 60;
+const sunSpeed = 2 * Math.PI / 120;// adjust speed of sun
+const parabolaHeight = 0; // Adjust this value to control the height of the parabola
+const parabolaWidth = 1000; // Adjust this value to control the width of the parabola
+
 function updateSun() {
   const elapsedTime = Date.now() * 0.001; // Convert milliseconds to seconds
   const orbitRadius = 100; // Adjust this value based on your scene
@@ -121,7 +127,11 @@ function updateSun() {
   const theta = elapsedTime * sunSpeed; // Angle of rotation for the sun
 
   const sunX = 0; // X-coordinate of the sun (no horizontal movement)
-  const sunY = Math.cos(theta) * orbitRadius; // Y-coordinate of the sun
+
+  // Calculate the Y-coordinate of the sun using a parabolic path
+  const parabolicOffset = parabolaHeight * Math.pow((2 * theta) / parabolaWidth - 1, 2);
+  const sunY = Math.cos(theta) * orbitRadius + parabolicOffset;
+
   const sunZ = Math.sin(theta) * orbitRadius; // Z-coordinate of the sun
 
 
@@ -144,6 +154,7 @@ function animate(){
   water.material.uniforms[ 'time' ].value += 1.0 / 150.0;
   lagoonAnimate();
 
+
   updateSun();
 
   controls.update();
@@ -153,13 +164,35 @@ function animate(){
 
 animate()
 
-function moveCamera(){
-  const t = document.body.getBoundingClientRect().top;
-
-  camera.position.set( 30 + t * -.1, 30 + t * -.1, t * -.5 )
-}
-
-document.body.onscroll = moveCamera
+/*
+const tl = gsap.timeline();
+window.addEventListener('mousedown', function(){
+  tl.to(camera.position,{
+    z: 14, 
+    duration: 1.5,
+    onUpdate: function(){
+      camera.lookAt(0,0,0)
+    }
+  })
+  .to(camera.position,{
+    y: 50, 
+    duration: 5,
+    onUpdate: function(){
+      camera.lookAt(-50,-100,20)
+    }
+  })
+  .to(camera.position,{
+    y: -10, 
+    x: -50,
+    z: 33,
+    duration: 10,
+    onUpdate: function(){
+      camera.lookAt(50,100,20)
+    }
+  })
+  
+})
+*/
 
 
 
