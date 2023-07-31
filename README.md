@@ -34,4 +34,3 @@ Please reach out to me if you have any questions about the functionality of the 
 [license](http://choosealicense.com/licenses/mit/)
 
 MIT License
->>>>>>> 4832fd4 (added readme and demo photo)
