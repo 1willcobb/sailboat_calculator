@@ -1,4 +1,4 @@
-# Sailboat Calculator
+# sailboat_calculator
+A calculator for sailboat life
 
-An app using three.js to visualize financianal planning for purchasing a sailboat.
-
+MIT License
