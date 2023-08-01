@@ -148,6 +148,27 @@ function updateSun() {
 }
 
 
+// Define the start and end points for the camera position
+const startPoint = new THREE.Vector3(30, 30, 30);
+const endPoint = new THREE.Vector3(150, 150, 500);
+
+// Set the camera's initial position
+camera.position.copy(startPoint);
+camera.lookAt(new THREE.Vector3());
+
+// Create a Tween to animate the camera position
+const tweenDuration = 4000; // Duration of the tween in milliseconds
+const tween = new TWEEN.Tween(camera.position)
+  .to(endPoint, tweenDuration)
+  .easing(TWEEN.Easing.Quadratic.InOut) // You can choose a different easing function if desired
+  .onUpdate(() => {
+    // Look at the target point during the animation
+    camera.lookAt(new THREE.Vector3());
+  });
+
+// Start the tween
+tween.start();
+
 
 function animate(){
   requestAnimationFrame(animate);
