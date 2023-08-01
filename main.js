@@ -9,10 +9,36 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { Water } from 'three/examples/jsm/objects/Water'
 import { Sky } from 'three/examples/jsm/objects/Sky'
 import { LinearToneMapping } from 'three'
+import * as TWEEN from '@tweenjs/tween.js'
+
+
+
+
+const project = core.getProject("opening")
+const sheet = project.sheet("Establishing shots")
+
+const craneCam = sheet.object("Crane Cam", {
+  position: {x: 0, y: 0, z: 0},
+  rotation: {x: 0, y: 0, z: 0},
+  fov:75,
+  near: 0.1,
+  far:90
+})
+
 
 studio.initialize()
 
+
 const scene = new THREE.Scene();
+
+
+// craneCam.onValuesChange((v) => {
+//   scene.craneCam.position.set(v.position)
+//   scene.craneCam.rotation.set(v.rotation)
+// })
+
+
+
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 5, 10000);
 
@@ -24,7 +50,8 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setPixelRatio( window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.set(50,50,100);
+camera.position.set(22,29,80);
+
 renderer.toneMapping = LinearToneMapping;
 renderer.toneMappingExposure = .4; // sets the exposure of the scene
 renderer.render(scene,camera);
@@ -148,6 +175,26 @@ function updateSun() {
 }
 
 
+// Define the start and end points for the camera position
+const startPoint = new THREE.Vector3(30, 30, 30);
+const endPoint = new THREE.Vector3(150, 150, 500);
+
+// Set the camera's initial position
+camera.position.copy(startPoint);
+camera.lookAt(new THREE.Vector3());
+
+// Create a Tween to animate the camera position
+const tweenDuration = 4000; // Duration of the tween in milliseconds
+const tween = new TWEEN.Tween(camera.position)
+  .to(endPoint, tweenDuration)
+  .easing(TWEEN.Easing.Quadratic.InOut) // You can choose a different easing function if desired
+  .onUpdate(() => {
+    // Look at the target point during the animation
+    camera.lookAt(new THREE.Vector3());
+  });
+
+// Start the tween
+tween.start();
 
 function animate(){
   requestAnimationFrame(animate);
@@ -155,6 +202,9 @@ function animate(){
   lagoonAnimate();
 
 
+  TWEEN.update();
+
+  console.log(camera.position)
   updateSun();
 
   controls.update();
