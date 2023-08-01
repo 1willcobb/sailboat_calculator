@@ -175,13 +175,26 @@ function updateSun() {
 }
 
 
-// Define the start and end points for the camera position
 const startPoint = new THREE.Vector3(30, 30, 30);
 const endPoint = new THREE.Vector3(150, 150, 500);
+// Function to update camera position based on scroll position
+function updateCameraPositionOnScroll() {
+  // Define the start and end points for the camera position
 
-// Set the camera's initial position
-camera.position.copy(startPoint);
-camera.lookAt(new THREE.Vector3());
+  // Calculate the current scroll percentage
+  const scrollPercentage = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+
+  // Interpolate between start and end points based on the scroll percentage
+  const interpolatedPosition = new THREE.Vector3().lerpVectors(startPoint, endPoint, scrollPercentage);
+
+  // Set the camera position
+  camera.position.copy(interpolatedPosition);
+  camera.lookAt(new THREE.Vector3());
+}
+
+// Attach an event listener to the scroll event
+window.addEventListener('scroll', updateCameraPositionOnScroll);
+
 
 // Create a Tween to animate the camera position
 const tweenDuration = 4000; // Duration of the tween in milliseconds
