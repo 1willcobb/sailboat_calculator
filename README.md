@@ -14,7 +14,7 @@ A 3D dynamic financial planning app for future cruisers to project boat ownershi
 
 The caluclaor is a culmination of my wife and I trying to look at loan calculators and create multiple different spreadsheets to determine boat ownership potential costs and way that against avalible sailboats on the market. So, many tabs and websites with crappy calculators. 
 
-This app solves that by making the calculator cover all the questions we considered for purchasing a boat and then some. It is also a dynamic and beautiful app that takes you to the boat and dynamically moved around it. 
+This app solves that by making the calculator cover all the questions we considered for purchasing a boat and then some. It is also a dynamic and beautiful app that takes you to the boat and dynamically moved around it.  
 
 ## Demo
 
